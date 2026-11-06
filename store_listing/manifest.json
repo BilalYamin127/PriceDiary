@@ -1,0 +1,22 @@
+{
+  "app": "PriceDiary",
+  "locale": "en-US",
+  "status": "draft_requires_publisher_details_and_runtime_screenshots",
+  "privacy_policy_url": null,
+  "support_email": "privacy@example.invalid",
+  "assets": {
+    "icon": "graphics/app-icon-512.png",
+    "feature_graphic": "graphics/feature-graphic-1024x500.png",
+    "mockups": [
+      "graphics/mockups/01-dashboard.png",
+      "graphics/mockups/02-products.png",
+      "graphics/mockups/03-product-form.png",
+      "graphics/mockups/04-record-price.png",
+      "graphics/mockups/05-comparison.png",
+      "graphics/mockups/06-history.png",
+      "graphics/mockups/07-chart.png",
+      "graphics/mockups/08-backup.png"
+    ]
+  },
+  "privacy_policy": "privacy/PriceDiary-Privacy-Policy.docx"
+}

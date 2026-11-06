@@ -1,0 +1,25 @@
+Remember what you paid, where you saw it and when.
+
+PriceDiary is your personal price tracker for groceries, household items, electronics and everyday purchases. Record prices yourself and build a useful history across the shops you visit. No account or backend is required.
+
+RECORD THE DETAILS
+Save a product's name, brand, category and exact package size. Add a shop, observed price, date and optional notes. Each visit creates a separate observation, so new prices do not overwrite your history. Use Record again to reuse the product and shop while entering a fresh price.
+
+COMPARE SHOPS WITH CONTEXT
+See the latest price you recorded at each shop, including its observation date. Identify the lowest and highest latest observations, the price spread and your historical low. Old observations are clearly dated, with reminders to recheck prices recorded at least 30 days ago.
+
+FOLLOW PRICE CHANGES
+Browse previous visits and see price increases or decreases at the same shop and in the same currency. View price charts and filter by shop and date range. Search by product or brand, filter by category or shop, and sort your products.
+
+COMPARE PACKAGE SIZES
+View prices per kilogram, liter or piece when units are compatible. Optional normalized comparisons include matching product names, brands and categories across package sizes. Always check that the products are equivalent before relying on a comparison.
+
+KEEP YOUR DIARY WITH YOU
+Your records are stored locally. Save a full JSON backup and restore it on another device, or export products, shops and observations as CSV files for a spreadsheet. Restore validates a backup and asks before replacing your diary.
+
+MAKE IT YOURS
+Choose a default currency and light, dark or system theme. Edit incorrect observations, manage your shops and products, and clear your diary when you choose.
+
+PriceDiary works offline and has no ads, analytics or sign-in. It does not fetch live store prices, compare currencies using exchange rates or guarantee current prices or savings. Prices are observations you enter, not current offers from shops.
+
+Back up regularly: uninstalling the app or clearing its storage may delete local records. Exporting or sharing a file sends it only to the destination you select. Full backups are unencrypted; store them somewhere private.

@@ -1,0 +1,6 @@
+Meet PriceDiary: your offline personal price tracker.
+• Record dated prices across shops without losing history.
+• Compare observations and view price trends.
+• Search products and compare compatible package sizes.
+• Save and restore full backups, or export CSV files.
+• Choose your currency and light or dark theme.

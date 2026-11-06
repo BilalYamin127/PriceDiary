@@ -69,3 +69,9 @@ flutter build linux --release            # Linux desktop development tools requi
 Android release builds use the generated debug key by default for convenient testing on another device. For a Play Store release, create a private signing key, copy `android/key.properties.example` to `android/key.properties`, enter your own values and build the app bundle. Keep the key and passwords out of Git. Configure your Apple team, signing and distribution in Xcode before an iOS/macOS store release. Replace the default Flutter icons and confirm application identifiers before store publication.
 
 The **Verify and build** GitHub Actions workflow is manual only. Run it from the Actions tab to analyze and test; optionally produce a device-test release APK. It does not launch the app or publish anything.
+
+## Play Store listing assets
+
+The [store submission pack](store_listing/PLAY_CONSOLE_CHECKLIST.md) includes listing copy, a 512 px icon, 1024 × 500 feature graphic, eight 1080 × 1920 **illustrative mockups**, and a privacy policy in Word/HTML/Markdown formats. The launcher icons use the new PriceDiary artwork. Mockups are visibly labeled drafts; replace them with real release-app screenshots before submission. The contact email is intentionally a dummy and the public privacy-policy URL is pending. See the checklist for remaining publisher decisions and upload requirements.
+
+To rebuild the compositions/documents on Linux, install `Pillow` and `python-docx`, then run `python3 store_listing/source/create_assets.py` and `python3 store_listing/source/create_documents.py`. The asset script uses DejaVu Sans fonts from `/usr/share/fonts/truetype/dejavu`. Run `python3 store_listing/source/validate_pack.py` to check dimensions, text lengths and the policy document. `source/icon-master.png` is the original AI-generated artwork.
