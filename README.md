@@ -27,6 +27,9 @@ The application was not launched during development, as requested. Platform proj
 - Normalized prices per kg, liter or piece. Optional cross-package comparison requires matching name, brand and category, plus compatible unit dimensions. Review product equivalence before using these comparisons.
 - Price charts with separate shop series, product context, currency and date-range filters.
 - Light/dark/system theme, configurable three-letter default currency, CSV sharing and confirmed data clearing.
+- Full JSON backup/restore with validation and a replacement preview for moving between devices.
+- Record again from history: reuses product/shop/currency, asks for a fresh price and saves a new dated observation.
+- Comparison warnings for observations at least 30 days old and dated historical-low details.
 - Responsive scrollable layouts, empty states and persistence error messages.
 
 ## Data and comparison rules
@@ -37,12 +40,13 @@ Comparisons never convert or combine currencies. Default-currency changes affect
 
 A product with observations cannot change its package quantity/unit: create another product for a different size. Shops and products with linked records cannot be deleted until their observations are removed. Shop names ignore capitalization and repeated whitespace for duplicate detection. Categories are built-in: Groceries, Household, Electronics and Other.
 
-CSV export shares `products.csv`, `shops.csv` and `price_records.csv` through the operating system share/save UI. Files include IDs, dates, currencies and relationships. CSV is an export, not an import/restore feature. Spreadsheet formula prefixes are escaped. The database is local and is not encrypted; use device security and export copies regularly. Uninstalling the app or clearing browser data can delete the diary.
+CSV export shares `products.csv`, `shops.csv` and `price_records.csv` through the operating system share/save UI. Files include IDs, dates, currencies and relationships. CSV is for spreadsheets. Use **Save a full backup** and **Restore a backup** in Settings for device transfers. Restore accepts PriceDiary JSON files up to 10 MB, validates IDs, relationships, prices, units, categories and settings, and replaces the entire diary after confirmation. It does not merge diaries. Backups are unencrypted; store them somewhere private. Spreadsheet formula prefixes are escaped. The database is local and is not encrypted; use device security and export copies regularly. Uninstalling the app or clearing browser data can delete the diary.
 
 ## Structure
 
 - `lib/domain.dart`: models, calculation, normalization, ordering and CSV helpers.
 - `lib/store.dart`: Hive persistence, CRUD and relationship validation.
+- `lib/backup.dart` and `lib/backup_settings.dart`: validated backup format and save/restore flow.
 - `lib/forms.dart`: validated product, shop and observation forms.
 - `lib/screens.dart`: dashboard, lists, comparisons, history, charts and settings.
 - `lib/main.dart`: startup, Riverpod, Material 3 themes and GoRouter.

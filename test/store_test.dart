@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:price_diary/domain.dart';
+import 'package:price_diary/backup.dart';
 import 'package:price_diary/store.dart';
 
 void main() {
@@ -125,5 +126,37 @@ void main() {
     }
     expect(() => store.settings('US', 'dark'), throwsArgumentError);
     expect(() => store.settings('USD', 'unknown'), throwsArgumentError);
+  });
+  test(
+    'Restored data and settings persist after reopening the database',
+    () async {
+      await store.saveRecord(record('backup', 42));
+      await store.settings('EUR', 'light');
+      final exported = store.backup.encode();
+      await store.clear();
+      await store.restore(DiaryBackup.parse(exported));
+      await box.close();
+      box = await Hive.openBox<String>('diary');
+      final restored = DiaryStore(box);
+      expect(restored.records.single.price, 42);
+      expect(restored.products.single.id, 'p');
+      expect(restored.shops.single.id, 's');
+      expect(restored.currency, 'EUR');
+      expect(restored.theme, 'light');
+      restored.dispose();
+    },
+  );
+  test('Invalid restoration leaves current diary intact', () async {
+    await store.saveRecord(record('existing', 7));
+    final invalid = DiaryBackup(
+      products: [],
+      shops: [],
+      records: [record('broken', 10)],
+      currency: 'USD',
+      theme: 'dark',
+    );
+    expect(() => store.restore(invalid), throwsFormatException);
+    expect(store.records.single.id, 'existing');
+    expect(DiaryStore(box).records.single.price, 7);
   });
 }

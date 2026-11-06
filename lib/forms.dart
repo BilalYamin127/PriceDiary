@@ -244,6 +244,7 @@ Future<void> recordForm(
   DiaryStore store, {
   String? productId,
   PriceRecord? old,
+  PriceRecord? repeat,
 }) async {
   if (store.products.isEmpty || store.shops.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -255,15 +256,26 @@ Future<void> recordForm(
   }
   await showDialog<void>(
     context: context,
-    builder: (_) => RecordForm(store: store, productId: productId, old: old),
+    builder: (_) => RecordForm(
+      store: store,
+      productId: productId,
+      old: old,
+      repeat: repeat,
+    ),
   );
 }
 
 class RecordForm extends StatefulWidget {
   final DiaryStore store;
   final String? productId;
-  final PriceRecord? old;
-  const RecordForm({super.key, required this.store, this.productId, this.old});
+  final PriceRecord? old, repeat;
+  const RecordForm({
+    super.key,
+    required this.store,
+    this.productId,
+    this.old,
+    this.repeat,
+  });
   @override
   State<RecordForm> createState() => _RecordFormState();
 }
@@ -272,14 +284,21 @@ class _RecordFormState extends State<RecordForm> {
   final key = GlobalKey<FormState>();
   late String productId =
           widget.old?.productId ??
+          widget.repeat?.productId ??
           widget.productId ??
           widget.store.products.first.id,
-      shopId = widget.old?.shopId ?? widget.store.shops.first.id;
+      shopId =
+          widget.old?.shopId ??
+          widget.repeat?.shopId ??
+          widget.store.shops.first.id;
   late DateTime date =
       widget.old?.recordedAt ?? DateUtils.dateOnly(DateTime.now());
   late final price = TextEditingController(text: widget.old?.price.toString()),
       currency = TextEditingController(
-        text: widget.old?.currencyCode ?? widget.store.currency,
+        text:
+            widget.old?.currencyCode ??
+            widget.repeat?.currencyCode ??
+            widget.store.currency,
       ),
       notes = TextEditingController(text: widget.old?.notes);
   bool busy = false;
@@ -331,6 +350,13 @@ class _RecordFormState extends State<RecordForm> {
                 onChanged: (v) => shopId = v!,
               ),
               const SizedBox(height: 12),
+              if (widget.repeat != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                    'Previous observation: ${widget.repeat!.currencyCode} ${widget.repeat!.price.toStringAsFixed(2)} · ${DateFormat.yMMMd().format(widget.repeat!.recordedAt)}. Enter the price you observed today.',
+                  ),
+                ),
               field(price, 'Observed price', number: true),
               TextFormField(
                 controller: currency,

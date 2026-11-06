@@ -9,10 +9,16 @@ import 'package:share_plus/share_plus.dart';
 import 'domain.dart';
 import 'store.dart';
 import 'forms.dart';
+import 'backup_settings.dart';
 
 String money(double value, String currency) =>
     '$currency ${NumberFormat('#,##0.00').format(value)}';
 String day(DateTime value) => DateFormat.yMMMd().format(value);
+String observed(DateTime value) {
+  final age = observationAgeDays(value, DateTime.now());
+  return '${day(value)}${age >= 30 ? ' · $age days old — recheck price' : ''}';
+}
+
 Widget heading(String title, String subtitle, [Widget? action]) => Padding(
   padding: const EdgeInsets.symmetric(vertical: 16),
   child: Row(
@@ -44,8 +50,17 @@ Widget empty(String title, String hint) => Padding(
     ],
   ),
 );
-Widget productCard(BuildContext context, DiaryStore s, Product p) {
-  final prices = latestByShop(s.records, p.id, s.currency);
+Widget productCard(
+  BuildContext context,
+  DiaryStore s,
+  Product p, {
+  String shop = '',
+}) {
+  final prices = latestByShop(
+    s.records.where((r) => shop.isEmpty || r.shopId == shop),
+    p.id,
+    s.currency,
+  );
   return Card(
     child: ListTile(
       contentPadding: const EdgeInsets.all(16),
@@ -57,7 +72,7 @@ Widget productCard(BuildContext context, DiaryStore s, Product p) {
       ),
       title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(
-        '${p.brand?.isNotEmpty == true ? '${p.brand} · ' : ''}${p.unitQuantity} ${p.unitType}\n${prices.isEmpty ? 'No ${s.currency} observations' : 'Lowest latest observation: ${money(prices.first.price, s.currency)} · ${day(prices.first.recordedAt)}'}',
+        '${p.brand?.isNotEmpty == true ? '${p.brand} · ' : ''}${p.unitQuantity} ${p.unitType}\n${prices.isEmpty ? 'No ${s.currency} observations' : 'Lowest latest observation: ${money(prices.first.price, s.currency)} · ${observed(prices.first.recordedAt)}'}',
       ),
       isThreeLine: true,
       trailing: const Icon(Icons.chevron_right),
@@ -279,7 +294,7 @@ class _ProductsScreenState extends ConsumerState<ProductsScreen> {
             'No products found',
             'Add a product or adjust your search filters.',
           ),
-        ...list.map((p) => productCard(context, s, p)),
+        ...list.map((p) => productCard(context, s, p, shop: shop)),
       ],
     );
   }
@@ -402,9 +417,25 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
         ),
       );
     }
+    final comparable = s.products
+        .where(
+          (other) =>
+              other.name.trim().toLowerCase() == p.name.trim().toLowerCase() &&
+              (other.brand ?? '').trim().toLowerCase() ==
+                  (p.brand ?? '').trim().toLowerCase() &&
+              other.categoryId == p.categoryId &&
+              normalizedQuantity(other).unit == normalizedQuantity(p).unit,
+        )
+        .toList();
     final currencies = {
       s.currency,
-      ...s.records.where((r) => r.productId == p.id).map((r) => r.currencyCode),
+      ...s.records
+          .where(
+            (r) => normalized
+                ? comparable.any((other) => other.id == r.productId)
+                : r.productId == p.id,
+          )
+          .map((r) => r.currencyCode),
     }.toList()..sort();
     final selectedCurrency = currencies.contains(currency)
         ? currency!
@@ -417,6 +448,7 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
             .toList()
           ..sort(chronological);
     final latest = latestByShop(all, p.id, selectedCurrency);
+    final historical = [...all]..sort((a, b) => a.price.compareTo(b.price));
     final filtered = all
         .where(
           (r) =>
@@ -426,16 +458,6 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
                       r.recordedAt.isBefore(
                         range!.end.add(const Duration(days: 1)),
                       ))),
-        )
-        .toList();
-    final comparable = s.products
-        .where(
-          (other) =>
-              other.name.trim().toLowerCase() == p.name.trim().toLowerCase() &&
-              (other.brand ?? '').trim().toLowerCase() ==
-                  (p.brand ?? '').trim().toLowerCase() &&
-              other.categoryId == p.categoryId &&
-              normalizedQuantity(other).unit == normalizedQuantity(p).unit,
         )
         .toList();
     final normalizedRows = <({Product product, PriceRecord record})>[];
@@ -546,7 +568,7 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
                                 child: Padding(
                                   padding: const EdgeInsets.all(16),
                                   child: Text(
-                                    'Lowest latest observation: ${money(latest.first.price, selectedCurrency)}\nSpread: ${money(latest.last.price - latest.first.price, selectedCurrency)}\nHistorical low: ${money(all.map((r) => r.price).reduce((a, b) => a < b ? a : b), selectedCurrency)}',
+                                    'Lowest latest observation: ${money(latest.first.price, selectedCurrency)}\nSpread: ${money(latest.last.price - latest.first.price, selectedCurrency)}\nHistorical low: ${money(historical.first.price, selectedCurrency)} · ${s.shopName(historical.first.shopId)} · ${day(historical.first.recordedAt)}',
                                   ),
                                 ),
                               ),
@@ -563,7 +585,7 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
                                   ),
                                   title: Text(s.shopName(r.shopId)),
                                   subtitle: Text(
-                                    'Observed ${day(r.recordedAt)}\n${money(normalizedPrice(p, r.price), selectedCurrency)} / ${normalizedQuantity(p).unit}',
+                                    'Observed ${observed(r.recordedAt)}\n${money(normalizedPrice(p, r.price), selectedCurrency)} / ${normalizedQuantity(p).unit}',
                                   ),
                                   trailing: Text(
                                     '${money(r.price, selectedCurrency)}\n${r.price == latest.first.price
@@ -589,7 +611,7 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
                                     '${row.product.name} · ${row.product.unitQuantity} ${row.product.unitType}',
                                   ),
                                   subtitle: Text(
-                                    '${s.shopName(row.record.shopId)} · ${day(row.record.recordedAt)}\nPackage: ${money(row.record.price, selectedCurrency)}',
+                                    '${s.shopName(row.record.shopId)} · ${observed(row.record.recordedAt)}\nPackage: ${money(row.record.price, selectedCurrency)}',
                                   ),
                                   trailing: Text(
                                     '${money(normalizedPrice(row.product, row.record.price), selectedCurrency)}\n/ ${normalizedQuantity(row.product).unit}',
@@ -633,7 +655,9 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
                                 ),
                                 trailing: PopupMenuButton<String>(
                                   onSelected: (v) async {
-                                    if (v == 'edit') {
+                                    if (v == 'repeat') {
+                                      await recordForm(context, s, repeat: r);
+                                    } else if (v == 'edit') {
                                       await recordForm(context, s, old: r);
                                     } else if (await confirm(
                                       context,
@@ -648,6 +672,10 @@ class _ProductScreenState extends ConsumerState<ProductScreen> {
                                     }
                                   },
                                   itemBuilder: (_) => const [
+                                    PopupMenuItem(
+                                      value: 'repeat',
+                                      child: Text('Record again'),
+                                    ),
                                     PopupMenuItem(
                                       value: 'edit',
                                       child: Text('Edit'),
@@ -846,6 +874,8 @@ class SettingsScreen extends ConsumerWidget {
       padding: const EdgeInsets.all(20),
       children: [
         heading('Settings', 'Your diary stays on this device'),
+        BackupSettings(store: s),
+        const Divider(),
         filter('Theme', s.theme, {
           'system': 'Follow system',
           'light': 'Light',
@@ -1006,7 +1036,7 @@ class SettingsScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 24),
         const Text(
-          'PriceDiary · 1.0.0\nCompletely offline. No account, backend or currency conversion.\nExport regularly; uninstalling the app may remove its local data.',
+          'PriceDiary · 1.1.0\nCompletely offline. No account, backend or currency conversion.\nExport regularly; uninstalling the app may remove its local data.',
         ),
       ],
     );

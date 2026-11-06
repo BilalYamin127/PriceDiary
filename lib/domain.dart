@@ -159,3 +159,11 @@ String csv(List<List<Object?>> rows) => rows
     .join('\r\n');
 Map<String, dynamic> decodeMap(String text) =>
     Map<String, dynamic>.from(jsonDecode(text) as Map);
+
+/// Calendar-day age, independent of daylight-saving hour changes.
+int observationAgeDays(DateTime observed, DateTime now) {
+  final age = DateTime.utc(now.year, now.month, now.day)
+      .difference(DateTime.utc(observed.year, observed.month, observed.day))
+      .inDays;
+  return age < 0 ? 0 : age;
+}

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'domain.dart';
+import 'backup.dart';
 
 final storeProvider = ChangeNotifierProvider<DiaryStore>(
   (ref) => throw UnimplementedError('Override with the opened database'),
@@ -166,6 +167,25 @@ class DiaryStore extends ChangeNotifier {
       throw ArgumentError('Select a valid currency code and theme.');
     }
     return _save(products, shops, records, c, t);
+  }
+
+  DiaryBackup get backup => DiaryBackup(
+    products: products,
+    shops: shops,
+    records: records,
+    currency: currency,
+    theme: theme,
+  );
+  Future<void> restore(DiaryBackup data) {
+    // Revalidate at the persistence boundary, including programmatic callers.
+    final checked = DiaryBackup.parse(data.encode());
+    return _save(
+      checked.products,
+      checked.shops,
+      checked.records,
+      checked.currency,
+      checked.theme,
+    );
   }
 
   Future<void> clear() => _save([], [], [], currency, theme);
